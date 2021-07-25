@@ -36,7 +36,7 @@ public class LogParser {
             matcher = pattern.matcher(line);
             if (matcher.find()) {
                 LogLine logLine = new LogLine();
-                for (String dateFormat: patternList.getDateFormatts()) {
+                for (String dateFormat: patternList.getDateFormats()) {
                     try {
                         logLine.setTimestamp(TimeUnit.SECONDS.toMillis(LocalDateTime.parse(matcher.group("timestamp").replace("\t"," "), DateTimeFormatter.ofPattern(dateFormat)).toEpochSecond(ZoneOffset.UTC)));
                         break;

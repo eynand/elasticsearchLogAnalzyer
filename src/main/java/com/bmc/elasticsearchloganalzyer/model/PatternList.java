@@ -9,7 +9,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "patterns")
 public class PatternList {
     private List<String> datePatterns;
-    private List<String> dateFormatts;
+    private List<String> dateFormats;
 
     public List<String> getDatePatterns() {
         return datePatterns;
@@ -19,11 +19,11 @@ public class PatternList {
         this.datePatterns = datePatterns;
     }
 
-    public List<String> getDateFormatts() {
-        return dateFormatts;
+    public List<String> getDateFormats() {
+        return dateFormats;
     }
 
-    public void setDateFormatts(List<String> dateFormatts) {
-        this.dateFormatts = dateFormatts;
+    public void setDateFormats(List<String> dateFormats) {
+        this.dateFormats = dateFormats;
     }
 }
