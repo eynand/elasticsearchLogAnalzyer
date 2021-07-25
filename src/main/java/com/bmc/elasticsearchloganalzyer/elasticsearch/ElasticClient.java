@@ -68,11 +68,29 @@ public class ElasticClient {
                     (request, bulkListener) ->
                             client.bulkAsync(request, RequestOptions.DEFAULT, bulkListener);
             this.bulkProcessor = BulkProcessor.builder(bulkConsumer, listener).build();
-        } catch (Exception ex)
-        {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
+        boolean isESConnected = false;
+        while (!isESConnected) {
+            try {
+                Thread.sleep(1000);
+                isESConnected = isESAlive();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
+
+    private boolean isESAlive() {
+        try {
+            client.ping(RequestOptions.DEFAULT);
+        } catch (Exception ex) {
+            return false;
+        }
+        return true;
+    }
+
 
     public void createIndices(String hcuName) {
         indiceName = hcuName;
@@ -81,22 +99,22 @@ public class ElasticClient {
         Map<String, Object> messageKeyword = new HashMap<>();
         Map<String, Object> fields = new HashMap<>();
         messageKeyword.put("type", "keyword");
-        fields.put("keyword",messageKeyword);
+        fields.put("keyword", messageKeyword);
         Map<String, Object> message = new HashMap<>();
         message.put("type", "text");
-        message.put("fields",fields);
+        message.put("fields", fields);
         Map<String, Object> timestamp = new HashMap<>();
         timestamp.put("type", "date");
         HashMap properties = new HashMap();
-        properties.put("logName",logName);
-        properties.put("message",message);
-        properties.put("timestamp",timestamp);
-        mapping.put("properties",properties);
+        properties.put("logName", logName);
+        properties.put("message", message);
+        properties.put("timestamp", timestamp);
+        mapping.put("properties", properties);
         try {
-            this.client.indices().create(new CreateIndexRequest(hcuName + "_hcu_logs_with_time").mapping(mapping),RequestOptions.DEFAULT);
+            this.client.indices().create(new CreateIndexRequest(hcuName + "_hcu_logs_with_time").mapping(mapping), RequestOptions.DEFAULT);
             properties.remove("timestamp");
-            this.client.indices().create(new CreateIndexRequest(hcuName + "_hcu_logs").mapping(mapping),RequestOptions.DEFAULT);
-        }catch (IOException ex) {
+            this.client.indices().create(new CreateIndexRequest(hcuName + "_hcu_logs").mapping(mapping), RequestOptions.DEFAULT);
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
 
@@ -105,6 +123,7 @@ public class ElasticClient {
     public void sendLog(LogLine log) {
         bulkProcessor.add(new IndexRequest(indiceName + "_hcu_logs").source(mapper.convertValue((log), Map.class)));
     }
+
     public void sendLogTime(LogLine log) {
         bulkProcessor.add(new IndexRequest(indiceName + "_hcu_logs_with_time").source(mapper.convertValue((log), Map.class)));
     }
