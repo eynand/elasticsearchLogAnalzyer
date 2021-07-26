@@ -10,6 +10,7 @@ import java.util.List;
 public class PatternList {
     private List<String> datePatterns;
     private List<String> dateFormats;
+    private List<String> linePatterns;
 
     public List<String> getDatePatterns() {
         return datePatterns;
@@ -25,5 +26,13 @@ public class PatternList {
 
     public void setDateFormats(List<String> dateFormats) {
         this.dateFormats = dateFormats;
+    }
+
+    public List<String> getLinePatterns() {
+        return linePatterns;
+    }
+
+    public void setLinePatterns(List<String> linePatterns) {
+        this.linePatterns = linePatterns;
     }
 }

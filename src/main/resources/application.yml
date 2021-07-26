@@ -1,4 +1,7 @@
 patterns:
+  linePatterns:
+    - $DATE.*$LEVEL.*?$TEXT
+    - $DATE\s+$TEXT
   datePatterns:
   - (?<timestamp>\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}:\d{2}\.\d+)
   - (?<timestamp>\d{2}/\d{2}/\d{4}\s+\d{2}:\d{2}:\d{2})
@@ -6,7 +9,7 @@ patterns:
   - \[(?<timestamp>\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\,\d+)\]
   - (?<timestamp>\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\,\d+)
   - (?<timestamp>\d{2} \w{3} \d{4}\s+\d{2}:\d{2}:\d{2}\,\d+)
-  dateFormatts:
+  dateFormats:
   - dd/MM/yyyy HH:mm:ss.SSS
   - dd/MM/yyyy HH:mm:ss,SSS
   - dd/MM/yyyy HH:mm:ss
@@ -14,5 +17,6 @@ patterns:
   - yyyy-MM-dd HH:mm:ss,SSS
   - yyyy-MM-dd HH:mm:ss.SSS
   - dd MMM yyyy HH:mm:ss,SSS
+
 
 

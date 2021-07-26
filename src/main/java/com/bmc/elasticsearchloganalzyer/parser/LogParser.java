@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,34 +21,36 @@ public class LogParser {
     @Autowired
     PatternList patternList;
     private ArrayList<Pattern> patterns;
-
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy\tHH:mm:ss.SSS");
-    final static String timestampRgx = "(?<timestamp>\\d{2}/\\d{2}/\\d{4}\\s+\\d{2}:\\d{2}:\\d{2}\\.\\d+)";
-    //final static String timestampRgx = "(?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})";
+    private ArrayList<DateTimeFormatter> dateTimeFormatters;
     final static String levelRgx = "(?<level>INFO|ERROR|WARN|TRACE|DEBUG|FATAL)";
-    final static String classRgx = "\\[(?<class>[^\\]]+)]";
-    final static String threadRgx = "\\[(?<thread>[^\\]]+)]";
     final static String textRgx = "(?<text>(.*))";
     private static Pattern PatternOnlyText = Pattern.compile(textRgx);
 
     public LogLine parse(String line, String logName) {
         Matcher matcher;
-        for (Pattern pattern: patterns) {
+        for (Pattern pattern : patterns) {
             matcher = pattern.matcher(line);
             if (matcher.find()) {
                 LogLine logLine = new LogLine();
-                for (String dateFormat: patternList.getDateFormats()) {
+                for (DateTimeFormatter dateFormat : dateTimeFormatters) {
                     try {
-                        logLine.setTimestamp(TimeUnit.SECONDS.toMillis(LocalDateTime.parse(matcher.group("timestamp").replace("\t"," "), DateTimeFormatter.ofPattern(dateFormat)).toEpochSecond(ZoneOffset.UTC)));
+                        logLine.setTimestamp(TimeUnit.SECONDS.toMillis(LocalDateTime.parse(matcher.group("timestamp").replace("\t", " "), dateFormat).toEpochSecond(ZoneOffset.UTC)));
                         break;
-                    }
-                    catch (Exception ex)
-                    {
+                    } catch (Exception ex) {
 
                     }
                 }
                 logLine.setLogName(logName);
-                //logLine.setLevel(matcher.group(1));
+                try
+                {
+                    if (matcher.group("level") != null) {
+                        logLine.setLevel(matcher.group("level"));
+                    }
+                }
+                catch (Exception ex) {
+
+                }
+
                 logLine.setMessage(matcher.group("text"));
                 return logLine;
             }
@@ -63,12 +66,18 @@ public class LogParser {
     }
 
     @PostConstruct
-    public void createParsers(){
+    public void createParsers() {
         patterns = new ArrayList<>();
-        for (String timestampPattern : patternList.getDatePatterns()) {
-            patterns.add(Pattern.compile(timestampPattern + "\\s+" + textRgx));
+        dateTimeFormatters = new ArrayList<>();
+        for (String linePattern : patternList.getLinePatterns()) {
+            for (String datePattern : patternList.getDatePatterns()) {
+                patterns.add(Pattern.compile(linePattern.replace("$DATE", datePattern).replace("$TEXT", textRgx).replace("$LEVEL", levelRgx)));
+            }
         }
 
+        for (String dateFormat : patternList.getDateFormats()) {
+            dateTimeFormatters.add(DateTimeFormatter.ofPattern(dateFormat));
+        }
     }
 
 }

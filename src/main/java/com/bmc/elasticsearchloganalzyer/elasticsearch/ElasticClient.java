@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.ActionListener;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.bulk.BulkProcessor;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -91,6 +92,13 @@ public class ElasticClient {
         return true;
     }
 
+    public void deleteIndices(String hcuName){
+        try {
+            this.client.indices().delete(new DeleteIndexRequest(hcuName + "_hcu_logs_with_time",hcuName + "_hcu_logs"),RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void createIndices(String hcuName) {
         indiceName = hcuName;

@@ -2,6 +2,7 @@ package com.bmc.elasticsearchloganalzyer;
 
 import com.bmc.elasticsearchloganalzyer.elasticsearch.ElasticClient;
 import com.bmc.elasticsearchloganalzyer.input.InputReader;
+import org.elasticsearch.ElasticsearchStatusException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,15 +24,31 @@ public class ElasticsearchloganalzyerApplication {
 		logAnalyzer = context.getBean(LogAnalyzer.class);
         inputReader = context.getBean(InputReader.class);
 		elasticClient = context.getBean(ElasticClient.class);
-        Scanner myObj = new Scanner(System.in);
-        System.out.println("Welcome to HCU Analysis Tool :), Please Enter A Descriptive Name For The HCU:");
-        String HCUName = myObj.nextLine();
-		System.out.println("Welcome to HCU Analysis Tool :), Please Enter the full path to the HCU:");
-		String hcuPath = myObj.nextLine();
-		elasticClient.createIndices(HCUName);
-        inputReader.createLogFilesList(hcuPath);
-		logAnalyzer.analyze();
-		SpringApplication.exit(context, () -> 0);
+        Scanner scan = new Scanner(System.in);
+        System.out.println("Welcome to HCU Analysis Tool :)\nPlease Enter A Descriptive Name For The HCU:");
+        String HCUName = scan.nextLine();
+		System.out.println("\nPlease Enter the full path to the HCU:");
+		String hcuPath = scan.nextLine();
+		try {
+			elasticClient.createIndices(HCUName);
+		}catch (ElasticsearchStatusException ex) {
+			System.out.println("\nHCU Name already exist, Overwrite? (y/n):");
+			String overwrite = scan.nextLine();
+			if (overwrite.toLowerCase().equals("y"))
+			{
+				elasticClient.deleteIndices(HCUName);
+				elasticClient.createIndices(HCUName);
+			}else {
+				SpringApplication.exit(context, () -> 0);
+			}
+		}
+		try {
+			inputReader.createLogFilesList(hcuPath);
+			logAnalyzer.analyze();
+			SpringApplication.exit(context, () -> 0);
+		}catch (Exception ex) {
+			System.out.println("\nDirectory can't be analyzed:" + ex.getMessage());
+			SpringApplication.exit(context, () -> 0);
+		}
 	}
-
 }
