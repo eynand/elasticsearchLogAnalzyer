@@ -45,6 +45,7 @@ public class ElasticsearchloganalzyerApplication {
 		try {
 			inputReader.createLogFilesList(hcuPath);
 			logAnalyzer.analyze();
+			logAnalyzer.csvAnalyze();
 			SpringApplication.exit(context, () -> 0);
 		}catch (Exception ex) {
 			System.out.println("\nDirectory can't be analyzed:" + ex.getMessage());

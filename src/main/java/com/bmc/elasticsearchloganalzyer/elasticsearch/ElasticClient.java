@@ -1,5 +1,6 @@
 package com.bmc.elasticsearchloganalzyer.elasticsearch;
 
+import com.bmc.elasticsearchloganalzyer.model.CsvLine;
 import com.bmc.elasticsearchloganalzyer.model.LogLine;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -134,6 +135,10 @@ public class ElasticClient {
 
     public void sendLogTime(LogLine log) {
         bulkProcessor.add(new IndexRequest(indiceName + "_hcu_logs_with_time").source(mapper.convertValue((log), Map.class)));
+    }
+
+    public void sendCsv(CsvLine line) {
+        bulkProcessor.add(new IndexRequest(indiceName + "_hcu_logs").source(mapper.convertValue((line), Map.class)));
     }
 
     @PreDestroy

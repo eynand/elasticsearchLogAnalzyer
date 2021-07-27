@@ -1,5 +1,6 @@
 package com.bmc.elasticsearchloganalzyer.input;
 
+import com.bmc.elasticsearchloganalzyer.model.CsvFile;
 import com.bmc.elasticsearchloganalzyer.model.LogFile;
 import org.apache.tools.ant.DirectoryScanner;
 import org.springframework.stereotype.Component;
@@ -12,13 +13,18 @@ public class InputReader {
 
 
     private ArrayList<LogFile> logFiles = new ArrayList<>();
+    private ArrayList<CsvFile> csvFiles = new ArrayList<>();
 
     public void createLogFilesList(String ...dirPath) {
         for (String pattern : dirPath) {
             DirectoryScanner scanner = new DirectoryScanner();
+            DirectoryScanner csvScanner = new DirectoryScanner();
             scanner.setIncludes(new String[]{"**/*.log","**/*.txt"});
+            csvScanner.setIncludes(new String[]{"**/*.csv"});
             scanner.setBasedir(pattern);
+            csvScanner.setBasedir(pattern);
             scanner.setCaseSensitive(false);
+            csvScanner.setCaseSensitive(false);
             scanner.scan();
             String[] files = scanner.getIncludedFiles();
             for (String file:files) {
@@ -27,10 +33,24 @@ public class InputReader {
                 logFile.setFile(new File(pattern + File.separator + file));
                 logFiles.add(logFile);
             }
+
+            csvScanner.scan();
+            String[] csvFilesScan = csvScanner.getIncludedFiles();
+            for (String csvfile : csvFilesScan) {
+                CsvFile csvFile = new CsvFile();
+                csvFile.setCsvName(csvfile);
+                csvFile.setFile(new File(pattern + File.separator + csvfile));
+                csvFiles.add(csvFile);
+            }
         }
     }
 
     public ArrayList<LogFile> getLogFiles() {
         return logFiles;
     }
+
+    public ArrayList<CsvFile> getCsvFiles() {
+        return csvFiles;
+    }
+
 }

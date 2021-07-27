@@ -2,14 +2,22 @@ package com.bmc.elasticsearchloganalzyer;
 
 import com.bmc.elasticsearchloganalzyer.elasticsearch.ElasticClient;
 import com.bmc.elasticsearchloganalzyer.input.InputReader;
-import com.bmc.elasticsearchloganalzyer.model.LogFile;
-import com.bmc.elasticsearchloganalzyer.model.LogLine;
+import com.bmc.elasticsearchloganalzyer.model.*;
 import com.bmc.elasticsearchloganalzyer.parser.LogParser;
+import com.opencsv.CSVReader;
+import com.opencsv.bean.CsvToBeanBuilder;
+import com.opencsv.bean.CsvToBeanFilter;
+import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
+import com.opencsv.bean.MappingStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,4 +67,24 @@ public class LogAnalyzer {
         executorService.shutdown();
         System.out.println("Finish Analyzing Log Files");
     }
+
+    public void csvAnalyze() {
+        try {
+            for (CsvFile csvFile : inputReader.getCsvFiles()) {
+                String file = csvFile.getFile().toString();
+
+                List<Parameter> beans =  new CsvToBeanBuilder(new FileReader(file))
+                        .withType(Parameter.class)
+                        .withIgnoreEmptyLine(true)
+                        .build().parse();
+
+                beans.forEach(elasticClient::sendCsv);
+            }
+        }catch (Exception e) {}
+
+    }
+
+
+
 }
+
