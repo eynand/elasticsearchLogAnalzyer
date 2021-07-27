@@ -33,6 +33,7 @@ public class ElasticClient {
     private RestHighLevelClient client;
     private BulkProcessor bulkProcessor;
     private HashMap mapping = new HashMap();
+    private HashMap metrics = new HashMap();
     private String indiceName;
 
     private static final ObjectMapper mapper = new ObjectMapper()
@@ -96,7 +97,7 @@ public class ElasticClient {
 
     public void deleteIndices(String hcuName){
         try {
-            this.client.indices().delete(new DeleteIndexRequest(hcuName + "_hcu_logs_with_time",hcuName + "_hcu_logs"),RequestOptions.DEFAULT);
+            this.client.indices().delete(new DeleteIndexRequest(hcuName + "_hcu_logs_with_time",hcuName + "_hcu_logs",hcuName + "_hcu_logs_metrics"),RequestOptions.DEFAULT);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -120,10 +121,33 @@ public class ElasticClient {
         properties.put("message", message);
         properties.put("timestamp", timestamp);
         mapping.put("properties", properties);
+
+        Map<String, Object> metricName = new HashMap<>();
+        metricName.put("type", "keyword");
+        Map<String, Object> ComponentType = new HashMap<>();
+        ComponentType.put("type", "keyword");
+        Map<String, Object> ComponentName = new HashMap<>();
+        ComponentName.put("type", "keyword");
+        Map<String, Object> hostname = new HashMap<>();
+        hostname.put("type", "keyword");
+        Map<String, Object> value = new HashMap<>();
+        value.put("type", "long");
+        Map<String, Object> metricTimestamp = new HashMap<>();
+        metricTimestamp.put("type", "date");
+        HashMap metricsProperties = new HashMap();
+        metricsProperties.put("Name",metricName);
+        metricsProperties.put("ComponentType",ComponentType);
+        metricsProperties.put("ComponentName",ComponentName);
+        metricsProperties.put("hostname",hostname);
+        metricsProperties.put("value",value);
+        metricsProperties.put("timestamp",metricTimestamp);
+        metrics.put("properties", metricsProperties);
+
         try {
             this.client.indices().create(new CreateIndexRequest(hcuName + "_hcu_logs_with_time").mapping(mapping), RequestOptions.DEFAULT);
             properties.remove("timestamp");
             this.client.indices().create(new CreateIndexRequest(hcuName + "_hcu_logs").mapping(mapping), RequestOptions.DEFAULT);
+            this.client.indices().create(new CreateIndexRequest(hcuName + "_hcu_logs_metrics").mapping(metrics), RequestOptions.DEFAULT);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -140,6 +164,10 @@ public class ElasticClient {
 
     public void sendCsv(CsvLine line) {
         bulkProcessor.add(new IndexRequest(indiceName + "_hcu_logs_csv").source(mapper.convertValue((line), Map.class)));
+    }
+
+    public void sendMetric(CsvLine line) {
+        bulkProcessor.add(new IndexRequest(indiceName + "_hcu_logs_metrics").source(mapper.convertValue((line), Map.class)));
     }
 
     @PreDestroy

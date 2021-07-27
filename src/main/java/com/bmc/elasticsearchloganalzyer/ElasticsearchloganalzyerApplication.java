@@ -48,6 +48,7 @@ public class ElasticsearchloganalzyerApplication {
 		}
 		try {
 			inputReader.createLogFilesList(hcuPath);
+			logAnalyzer.parseMetrics();
 			logAnalyzer.analyze();
 			for (Class c: csvClasses) {
 				logAnalyzer.csvAnalyze(c);

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.awt.*;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.List;
@@ -80,6 +81,29 @@ public class LogAnalyzer {
             }
         }catch (Exception e) {}
 
+    }
+
+    public void parseMetrics() throws FileNotFoundException {
+        CsvToBeanFilter filter = new CsvToBeanFilter() {
+            @Override
+            public boolean allowLine(String[] strings) {
+                for (String line : strings) {
+                    if (line.equals("0 rows affected")) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        };
+        List<Metric> beans = new CsvToBeanBuilder(new FileReader(inputReader.getMetricFile().getFile()))
+                .withType(Metric.class)
+                .withIgnoreEmptyLine(true)
+                .withFilter(filter)
+                .build().parse();
+
+        for (Metric metric : beans) {
+            elasticClient.sendMetric(metric);
+        }
     }
 
 }

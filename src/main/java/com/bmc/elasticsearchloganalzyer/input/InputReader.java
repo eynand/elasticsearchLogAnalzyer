@@ -14,13 +14,17 @@ public class InputReader {
 
     private ArrayList<LogFile> logFiles = new ArrayList<>();
     private ArrayList<CsvFile> csvFiles = new ArrayList<>();
+    private CsvFile metricFile;
 
     public void createLogFilesList(String ...dirPath) {
         for (String pattern : dirPath) {
             DirectoryScanner scanner = new DirectoryScanner();
             DirectoryScanner csvScanner = new DirectoryScanner();
+            DirectoryScanner metricsScanner = new DirectoryScanner();
             scanner.setIncludes(new String[]{"**/*.log","**/*.txt"});
             csvScanner.setIncludes(new String[]{"**/*.csv"});
+            metricsScanner.setIncludes(new String[]{"**/metric_data.txt"});
+            metricsScanner.setBasedir(pattern);
             scanner.setBasedir(pattern);
             csvScanner.setBasedir(pattern);
             scanner.setCaseSensitive(false);
@@ -42,7 +46,19 @@ public class InputReader {
                 csvFile.setFile(new File(pattern + File.separator + csvfile));
                 csvFiles.add(csvFile);
             }
+
+            metricsScanner.scan();
+            String[] metricsFilesScan = metricsScanner.getIncludedFiles();
+            for (String csvfile : metricsFilesScan) {
+                metricFile = new CsvFile();
+                metricFile.setCsvName(csvfile);
+                metricFile.setFile(new File(pattern + File.separator + csvfile));
+            }
         }
+    }
+
+    public CsvFile getMetricFile() {
+        return metricFile;
     }
 
     public ArrayList<LogFile> getLogFiles() {
