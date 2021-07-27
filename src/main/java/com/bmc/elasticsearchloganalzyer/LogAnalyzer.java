@@ -5,10 +5,7 @@ import com.bmc.elasticsearchloganalzyer.input.InputReader;
 import com.bmc.elasticsearchloganalzyer.model.*;
 import com.bmc.elasticsearchloganalzyer.parser.LogParser;
 import com.opencsv.CSVReader;
-import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.bean.CsvToBeanFilter;
-import com.opencsv.bean.HeaderColumnNameTranslateMappingStrategy;
-import com.opencsv.bean.MappingStrategy;
+import com.opencsv.bean.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -68,13 +65,14 @@ public class LogAnalyzer {
         System.out.println("Finish Analyzing Log Files");
     }
 
-    public void csvAnalyze() {
+    public void csvAnalyze(Class c) {
         try {
             for (CsvFile csvFile : inputReader.getCsvFiles()) {
                 String file = csvFile.getFile().toString();
 
-                List<Parameter> beans =  new CsvToBeanBuilder(new FileReader(file))
-                        .withType(Parameter.class)
+                List<CsvLine> beans =  new CsvToBeanBuilder(new FileReader(file))
+                        .withType(c)
+                        .withFilter(new MyFilter())
                         .withIgnoreEmptyLine(true)
                         .build().parse();
 
@@ -84,7 +82,12 @@ public class LogAnalyzer {
 
     }
 
-
-
 }
 
+class MyFilter implements CsvToBeanFilter {
+
+    public boolean allowLine(String[] line) {
+        // restore the relevant indices from the strategy
+        return line.length > 1;
+    }
+}

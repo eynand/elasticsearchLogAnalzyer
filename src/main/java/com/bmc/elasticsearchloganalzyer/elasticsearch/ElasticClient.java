@@ -23,6 +23,7 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 @Component
@@ -138,11 +139,12 @@ public class ElasticClient {
     }
 
     public void sendCsv(CsvLine line) {
-        bulkProcessor.add(new IndexRequest(indiceName + "_hcu_logs").source(mapper.convertValue((line), Map.class)));
+        bulkProcessor.add(new IndexRequest(indiceName + "_hcu_logs_csv").source(mapper.convertValue((line), Map.class)));
     }
 
     @PreDestroy
-    private void close() throws IOException {
+    private void close() throws IOException, InterruptedException {
+        bulkProcessor.awaitClose(10L, TimeUnit.SECONDS);
         client.close();
     }
 
