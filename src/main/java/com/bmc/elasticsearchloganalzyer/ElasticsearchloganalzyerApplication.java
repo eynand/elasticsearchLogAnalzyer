@@ -2,6 +2,7 @@ package com.bmc.elasticsearchloganalzyer;
 
 import com.bmc.elasticsearchloganalzyer.elasticsearch.ElasticClient;
 import com.bmc.elasticsearchloganalzyer.input.InputReader;
+import com.bmc.elasticsearchloganalzyer.model.Confreg;
 import com.bmc.elasticsearchloganalzyer.model.CsvLine;
 import com.bmc.elasticsearchloganalzyer.model.Parameter;
 import org.elasticsearch.ElasticsearchStatusException;
@@ -21,7 +22,7 @@ public class ElasticsearchloganalzyerApplication {
     static InputReader inputReader;
     static ElasticClient elasticClient;
 	static public ConfigurableApplicationContext context;
-	static private Class[] csvClasses = new Class[]{Parameter.class};
+	static private Class[] csvClasses = new Class[]{Parameter.class, Confreg.class};
 
 	public static void main(String[] args) {
 		context = SpringApplication.run(ElasticsearchloganalzyerApplication.class, args);

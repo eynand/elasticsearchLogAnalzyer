@@ -4,22 +4,18 @@ import com.bmc.elasticsearchloganalzyer.elasticsearch.ElasticClient;
 import com.bmc.elasticsearchloganalzyer.input.InputReader;
 import com.bmc.elasticsearchloganalzyer.model.*;
 import com.bmc.elasticsearchloganalzyer.parser.LogParser;
-import com.opencsv.CSVReader;
 import com.opencsv.bean.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.HashMap;
+import java.io.FileReader;;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+
 
 @Service
 public class LogAnalyzer {
@@ -76,10 +72,11 @@ public class LogAnalyzer {
                         .withFilter(new MyFilter())
                         .withIgnoreEmptyLine(true)
                         .build().parse();
-
-                beans.forEach(elasticClient::sendCsv);
+                try {
+                    beans.forEach(elasticClient::sendCsv);
+                } catch (Exception e) { continue;}
             }
-        }catch (Exception e) {}
+        }catch (Exception e) {String s = e.getMessage();}
 
     }
 
@@ -105,7 +102,28 @@ public class LogAnalyzer {
             elasticClient.sendMetric(metric);
         }
     }
+    public void parseMemory() throws FileNotFoundException {
+        CsvToBeanFilter filter = new CsvToBeanFilter() {
+            @Override
+            public boolean allowLine(String[] strings) {
+                for (String line : strings) {
+                    if (line.equals("0 rows affected")) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        };
+        List<Metric> beans = new CsvToBeanBuilder(new FileReader(inputReader.getMetricFile().getFile()))
+                .withType(Metric.class)
+                .withIgnoreEmptyLine(true)
+                .withFilter(filter)
+                .build().parse();
 
+        for (Metric metric : beans) {
+            elasticClient.sendMetric(metric);
+        }
+    }
 }
 
 class MyFilter implements CsvToBeanFilter {

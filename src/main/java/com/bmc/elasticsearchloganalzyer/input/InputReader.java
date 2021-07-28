@@ -21,17 +21,18 @@ public class InputReader {
             DirectoryScanner scanner = new DirectoryScanner();
             DirectoryScanner csvScanner = new DirectoryScanner();
             DirectoryScanner metricsScanner = new DirectoryScanner();
-            scanner.setIncludes(new String[]{"**/*.log","**/*.txt"});
-            csvScanner.setIncludes(new String[]{"**/*.csv"});
-            metricsScanner.setIncludes(new String[]{"**/metric_data.txt"});
+            scanner.setIncludes(new String[]{"**/*.log", "**/*.txt"});
+            csvScanner.setIncludes(new String[]{"**/params-table.csv","**/confreg-table.csv"});
+            metricsScanner.setIncludes(new String[]{"**/metric_data.*"});
             metricsScanner.setBasedir(pattern);
             scanner.setBasedir(pattern);
             csvScanner.setBasedir(pattern);
             scanner.setCaseSensitive(false);
             csvScanner.setCaseSensitive(false);
+
             scanner.scan();
             String[] files = scanner.getIncludedFiles();
-            for (String file:files) {
+            for (String file : files) {
                 LogFile logFile = new LogFile();
                 logFile.setLogName(file);
                 logFile.setFile(new File(pattern + File.separator + file));
@@ -54,6 +55,7 @@ public class InputReader {
                 metricFile.setCsvName(csvfile);
                 metricFile.setFile(new File(pattern + File.separator + csvfile));
             }
+
         }
     }
 
